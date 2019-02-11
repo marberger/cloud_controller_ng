@@ -127,6 +127,17 @@ module VCAP::CloudController
     def enumerate_services(guid)
       org = find_guid_and_validate_access(:read, guid)
 
+      #### Start of changes ####
+      begin
+        puts "#### Enumerate services called in organizations_controller ####"
+        sb_controller = VCAP::CloudController::ServiceBrokersController.service_broker_controller
+        puts "Service Broker Controller is not yet initialized!" unless sb_controller
+        sb_controller.update_service_registry_catalog if sb_controller
+      rescue => e
+        puts "Exception raised: #{e}"
+      end
+      #### End of changes ####
+
       associated_controller = ServicesController
       associated_model = Service
 

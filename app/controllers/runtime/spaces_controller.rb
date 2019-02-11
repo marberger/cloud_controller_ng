@@ -122,6 +122,17 @@ module VCAP::CloudController
     def enumerate_services(guid)
       space = find_guid_and_validate_access(:read, guid)
 
+      #### Start of changes ####
+      begin
+        puts "#### Enumerate services called in spaces_controller ####"
+        sb_controller = VCAP::CloudController::ServiceBrokersController.service_broker_controller
+        puts "Service Broker Controller is not yet initialized!" unless sb_controller
+        sb_controller.update_service_registry_catalog if sb_controller
+      rescue => e
+        puts "Exception raised: #{e}"
+      end
+      #### End of changes ####
+
       filtered_dataset = Query.filtered_dataset_from_query_params(
         Service,
         Service.space_or_org_visible_for_user(space, SecurityContext.current_user),

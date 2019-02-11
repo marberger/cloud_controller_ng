@@ -27,6 +27,18 @@ module VCAP::CloudController
 
     allow_unauthenticated_access only: :enumerate
     def enumerate
+
+      #### Start of changes ####
+      begin
+        puts "#### Enumerate services called in service_controller ####"
+        sb_controller = VCAP::CloudController::ServiceBrokersController.service_broker_controller
+        puts "Service Broker Controller is not yet initialized!" unless sb_controller
+        sb_controller.update_service_registry_catalog if sb_controller
+      rescue => e
+        puts "Exception raised: #{e}"
+      end
+      #### End of changes ####
+
       if SecurityContext.missing_token?
         raise CloudController::Errors::NotAuthenticated if VCAP::CloudController::FeatureFlag.enabled?(:hide_marketplace_from_unauthenticated_users)
 

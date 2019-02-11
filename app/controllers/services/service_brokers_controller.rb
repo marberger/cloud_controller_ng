@@ -27,6 +27,27 @@ module VCAP::CloudController
       @services_event_repository = dependencies.fetch(:services_event_repository)
     end
 
+    #### Start of changes #1 ####
+
+    def initialize(config, logger, env, params, body, sinatra=nil, dependencies={})
+      super(config,logger,env,params,body,sinatra,dependencies)
+      @@service_broker_controller = self
+    end
+
+    def self.service_broker_controller
+      begin
+        puts "Access to service_broker_controller registered"
+        puts "@@service_broker_controller is currently #{@@service_broker_controller}" unless @@service_broker_controller == nil
+        puts "service_broker_controller is nil in getter!" if @@service_broker_controller == nil
+        return @@service_broker_controller
+      rescue => e
+        puts e
+      end
+      return nil
+    end
+
+    #### End of changes #1 ####
+
     def create
       params = CreateMessage.decode(body).extract
 
@@ -68,6 +89,20 @@ module VCAP::CloudController
       body = ServiceBrokerPresenter.new(broker).to_json
       [HTTP::OK, body]
     end
+
+    #### Start of changes #2 ####
+    def update_service_registry_catalog()
+      puts "Update_service_registry_catalog was called"
+      broker = ServiceBroker.find(name: "evoila-service-registry")
+
+      puts "Could not find a service broker with the name 'evoila-service-registry'" unless broker
+      return [HTTP::NOT_FOUND] unless broker
+
+      # Preparing body variable, that is used to store the body of the update call (is a StringIO object)
+      body.string = "{\"broker_url\":\"#{broker.broker_url}\",\"auth_username\":\"#{broker.auth_username}\",\"auth_password\":\"#{broker.auth_password}\"}"
+      update(broker.guid)
+    end
+    #### End of changes #2 ####
 
     def delete(guid)
       broker = ServiceBroker.find(guid: guid)
